@@ -1,9 +1,9 @@
 import os
 import sys
 
-def print_board(board):
+def print_board(board, player1_name, player2_name):
     """Выводит доску Tic-Tac-Toe."""
-    print(f"  {board[0]} | {board[1]} | {board[2]}")
+    print(f"\n  {board[0]} | {board[1]} | {board[2]}")
     print(f"  ---------")
     print(f"  {board[3]} | {board[4]} | {board[5]}")
     print(f"  ---------")
@@ -29,12 +29,12 @@ def get_free_cells(board):
     """Возвращает список свободных ячеек."""
     return [i for i in range(9) if board[i] == ""]
 
-def get_player_move(board, player):
+def get_player_move(board, player, player1_name, player2_name):
     """Получает ход игрока."""
     free = get_free_cells(board)
     while True:
         try:
-            move = int(input(f"Ход {player} (введите номер ячейки 1-9): ")) - 1
+            move = int(input(f"Ход {player}: {player1_name if player == 1 else player2_name} (введите номер ячейки 1-9): ")) - 1
             if move not in free:
                 print(f"Ячейка {move + 1} занята или некорректна!")
                 continue
@@ -43,27 +43,35 @@ def get_player_move(board, player):
             print("Некорректный ввод. Введите число 1-9.")
 
 def main():
+    # Ввод имён игроков
+    print("=" * 40)
+    print("   TIC-TOC-TOE (Консольная версия)")
+    print("=" * 40)
+    
+    player1_name = input("Введите имя Игрока 1: ") or "Игрок 1"
+    player2_name = input("Введите имя Игрока 2: ") or "Игрок 2"
+
     board = [""] * 9
     players = ["X", "O"]
     player = 0  # X ходит первым
 
-    print("=" * 40)
-    print("   TIC-TOC-TOE (Консольная версия)")
+    print("\n" + "=" * 40)
+    print(f"  {player1_name} (X) против {player2_name} (O)")
     print("=" * 40)
 
     while True:
-        print_board(board)
+        print_board(board, player1_name, player2_name)
         print(f"\nХод игрока {players[player]}")
 
-        move = get_player_move(board, players[player])
+        move = get_player_move(board, players[player], player1_name, player2_name)
         board[move] = players[player]
 
         if check_winner(board, players[player]):
-            print_board(board)
-            print(f"\n🎉 Игрок {players[player]} выиграл! 🎉")
+            print_board(board, player1_name, player2_name)
+            print(f"\n🎉 {player1_name if players[player] == 'X' else player2_name} выиграл! 🎉")
             break
         elif check_draw(board):
-            print_board(board)
+            print_board(board, player1_name, player2_name)
             print("\n🤝 Ничья! 🤝")
             break
 
