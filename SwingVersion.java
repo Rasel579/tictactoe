@@ -4,6 +4,7 @@ import java.awt.event.*;
 
 /**
  * Tic-Tac-Toe с графическим интерфейсом на Java Swing.
+ * Поддерживает выбор размера поля (3x3, 4x4, 5x5 и т.д.).
  */
 public class SwingVersion extends JFrame {
 
@@ -13,6 +14,7 @@ public class SwingVersion extends JFrame {
     private String gameMode = "PvP"; // "PvP" или "PvCPU"
     private boolean gameActive = true;
     private int cpuLevel = 1; // 1 = случайный, 2 = минимакс
+    private int boardSize = 3; // размер поля (3x3 по умолчанию)
 
     public SwingVersion() {
         setTitle("Tic-Tac-Toe (Swing)");
@@ -47,15 +49,15 @@ public class SwingVersion extends JFrame {
 
         // Основная панель игры
         JPanel gamePanel = new JPanel();
-        gamePanel.setLayout(new GridLayout(3, 3, 5, 5));
+        gamePanel.setLayout(new GridLayout(boardSize, boardSize, 5, 5));
         gamePanel.setBackground(new Color(248, 250, 255));
 
         // Создаём кнопки
-        buttons = new JButton[3][3];
-        board = new char[3][3];
+        buttons = new JButton[boardSize][boardSize];
+        board = new char[boardSize][boardSize];
 
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
                 buttons[i][j] = new JButton("");
                 buttons[i][j].setFont(new Font("Arial", Font.BOLD, 40));
                 buttons[i][j].setFocusable(false);
@@ -97,8 +99,8 @@ public class SwingVersion extends JFrame {
         currentPlayer = "X";
         gameMode = "PvP";
         cpuLevel = 1;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
                 buttons[i][j].setText("");
                 buttons[i][j].setBackground(null);
                 board[i][j] = ' ';
@@ -133,28 +135,55 @@ public class SwingVersion extends JFrame {
     }
 
     private boolean checkWinner() {
-        String[] rows = {
-            String.valueOf(board[0][0]) + board[0][1] + board[0][2],
-            String.valueOf(board[1][0]) + board[1][1] + board[1][2],
-            String.valueOf(board[2][0]) + board[2][1] + board[2][2],
-            String.valueOf(board[0][0]) + board[1][0] + board[2][0],
-            String.valueOf(board[0][1]) + board[1][1] + board[2][1],
-            String.valueOf(board[0][2]) + board[1][2] + board[2][2],
-            String.valueOf(board[0][0]) + board[1][1] + board[2][2],
-            String.valueOf(board[2][0]) + board[1][1] + board[0][2]
-        };
-        for (String row : rows) {
+        // Проверяем все возможные линии выигрыша для заданного размера поля
+        int size = boardSize;
+
+        // Горизонтали
+        for (int i = 0; i < size; i++) {
+            String row = "";
+            for (int j = 0; j < size; j++) {
+                row += board[i][j];
+            }
             if (row.length() >= 3 && row.charAt(0) != ' ' &&
                     row.charAt(0) == row.charAt(1) && row.charAt(1) == row.charAt(2)) {
                 return true;
             }
         }
+
+        // Вертикали
+        for (int j = 0; j < size; j++) {
+            String col = "";
+            for (int i = 0; i < size; i++) {
+                col += board[i][j];
+            }
+            if (col.length() >= 3 && col.charAt(0) != ' ' &&
+                    col.charAt(0) == col.charAt(1) && col.charAt(1) == col.charAt(2)) {
+                return true;
+            }
+        }
+
+        // Диагонали
+        String diag1 = "";
+        String diag2 = "";
+        for (int i = 0; i < size; i++) {
+            diag1 += board[i][i];
+            diag2 += board[i][size - 1 - i];
+        }
+        if (diag1.length() >= 3 && diag1.charAt(0) != ' ' &&
+                diag1.charAt(0) == diag1.charAt(1) && diag1.charAt(1) == diag1.charAt(2)) {
+            return true;
+        }
+        if (diag2.length() >= 3 && diag2.charAt(0) != ' ' &&
+                diag2.charAt(0) == diag2.charAt(1) && diag2.charAt(1) == diag2.charAt(2)) {
+            return true;
+        }
+
         return false;
     }
 
     private boolean checkDraw() {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
                 if (board[i][j] == ' ') return false;
             }
         }
@@ -163,9 +192,9 @@ public class SwingVersion extends JFrame {
 
     private void openSettingsDialog() {
         JDialog dialog = new JDialog(this, "Настройки", true);
-        dialog.setSize(280, 200);
+        dialog.setSize(350, 350);
         dialog.setLocationRelativeTo(this);
-        dialog.setLayout(new GridLayout(4, 1, 0, 10));
+        dialog.setLayout(new GridLayout(5, 1, 0, 10));
 
         // Игрок 1
         JPanel p1Panel = new JPanel();
@@ -237,6 +266,23 @@ public class SwingVersion extends JFrame {
         cpuPanel.add(cpuLabel, BorderLayout.NORTH);
         cpuPanel.add(cpuSpinner, BorderLayout.CENTER);
 
+        // Выбор размера поля
+        JPanel sizePanel = new JPanel();
+        sizePanel.setLayout(new BorderLayout());
+        sizePanel.setBackground(new Color(52, 73, 94));
+        sizePanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        JLabel sizeLabel = new JLabel("Размер поля:");
+        sizeLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        sizeLabel.setForeground(Color.WHITE);
+
+        JSpinner sizeSpinner = new JSpinner(new SpinnerNumberModel(3, 3, 5, 1));
+        sizeSpinner.setPreferredSize(new Dimension(50, 25));
+        sizeSpinner.setValue(3);
+
+        sizePanel.add(sizeLabel, BorderLayout.NORTH);
+        sizePanel.add(sizeSpinner, BorderLayout.CENTER);
+
         // Кнопки
         JPanel btnPanel = new JPanel();
         btnPanel.setBackground(new Color(52, 73, 94));
@@ -253,6 +299,7 @@ public class SwingVersion extends JFrame {
             boolean p2O = p2O.isSelected();
             boolean isPvCPU = rbPvCPU.isSelected();
             int cpuLevelVal = (int) cpuSpinner.getValue();
+            int boardSizeVal = (int) sizeSpinner.getValue();
 
             if (!p1X || !p2O) {
                 JOptionPane.showMessageDialog(dialog,
@@ -268,6 +315,10 @@ public class SwingVersion extends JFrame {
                 gameMode = "PvP";
             }
 
+            boardSize = boardSizeVal;
+            setSize(350 + (boardSizeVal - 3) * 50, 500 + (boardSizeVal - 3) * 100);
+            statusLabel.setText("Размер поля: " + boardSizeVal + "x" + boardSizeVal);
+
             dialog.dispose();
         });
 
@@ -280,6 +331,7 @@ public class SwingVersion extends JFrame {
         dialog.add(p2Panel);
         dialog.add(modePanel);
         dialog.add(cpuPanel);
+        dialog.add(sizePanel);
         dialog.add(btnPanel);
         dialog.setVisible(true);
     }
