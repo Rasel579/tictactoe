@@ -9,12 +9,13 @@ import java.awt.event.*;
 public class SwingVersion extends JFrame {
 
     private JButton[][] buttons;
-    private char[][] board;
+    private String[][] board;
     private String currentPlayer = "X";
     private String gameMode = "PvP"; // "PvP" или "PvCPU"
     private boolean gameActive = true;
     private int cpuLevel = 1; // 1 = случайный, 2 = минимакс
     private int boardSize = 3; // размер поля (3x3 по умолчанию)
+    private JLabel statusLabel;
 
     public SwingVersion() {
         setTitle("Tic-Tac-Toe (Swing)");
@@ -54,20 +55,22 @@ public class SwingVersion extends JFrame {
 
         // Создаём кнопки
         buttons = new JButton[boardSize][boardSize];
-        board = new char[boardSize][boardSize];
+        board = new String[boardSize][boardSize];
 
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
+                int curI = i;
+                int curJ = j;
                 buttons[i][j] = new JButton("");
                 buttons[i][j].setFont(new Font("Arial", Font.BOLD, 40));
                 buttons[i][j].setFocusable(false);
-                buttons[i][j].addActionListener(e -> handleMove(i, j));
+                buttons[i][j].addActionListener(e -> handleMove(curI, curJ));
                 gamePanel.add(buttons[i][j]);
             }
         }
 
         // Индикатор текущего хода
-        JLabel statusLabel = new JLabel("Ход: X");
+        statusLabel = new JLabel("Ход: X");
         statusLabel.setFont(new Font("Arial", Font.BOLD, 16));
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
         gamePanel.add(statusLabel);
@@ -103,7 +106,7 @@ public class SwingVersion extends JFrame {
             for (int j = 0; j < boardSize; j++) {
                 buttons[i][j].setText("");
                 buttons[i][j].setBackground(null);
-                board[i][j] = ' ';
+                board[i][j] = " ";
             }
         }
         statusLabel.setText("Ход: X");
@@ -112,7 +115,7 @@ public class SwingVersion extends JFrame {
 
     private void handleMove(int row, int col) {
         if (!gameActive) return;
-        if (board[row][col] != ' ') return;
+        if (!board[row][col].equals(" ")) return;
 
         board[row][col] = currentPlayer;
         buttons[row][col].setText(String.valueOf(currentPlayer));
@@ -184,7 +187,7 @@ public class SwingVersion extends JFrame {
     private boolean checkDraw() {
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
-                if (board[i][j] == ' ') return false;
+                if (board[i][j].equals(" ")) return false;
             }
         }
         return true;
@@ -295,13 +298,13 @@ public class SwingVersion extends JFrame {
         cancelBtn.setFont(new Font("Arial", Font.PLAIN, 12));
 
         okBtn.addActionListener(e -> {
-            boolean p1X = p1X.isSelected();
-            boolean p2O = p2O.isSelected();
+            boolean p1XNew = p1X.isSelected();
+            boolean p2ONew = p2O.isSelected();
             boolean isPvCPU = rbPvCPU.isSelected();
             int cpuLevelVal = (int) cpuSpinner.getValue();
             int boardSizeVal = (int) sizeSpinner.getValue();
 
-            if (!p1X || !p2O) {
+            if (!p1XNew || !p2ONew) {
                 JOptionPane.showMessageDialog(dialog,
                         "Каждый игрок должен выбрать свою фигуру!",
                         "Ошибка", JOptionPane.ERROR_MESSAGE);
@@ -336,7 +339,7 @@ public class SwingVersion extends JFrame {
         dialog.setVisible(true);
     }
 
-    private static void main(String[] args) {
+    public static void main(String[] args) {
         SwingUtilities.invokeLater(SwingVersion::new);
     }
 }
