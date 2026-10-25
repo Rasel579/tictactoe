@@ -1,7 +1,8 @@
 import os
 import sys
 
-def print_board(board, player1_name, player2_name):
+
+def print_board(board: list, player1_name: str, player2_name: str) -> None:
     """Выводит доску Tic-Tac-Toe."""
     print(f"\n  {board[0]} | {board[1]} | {board[2]}")
     print(f"  ---------")
@@ -9,7 +10,8 @@ def print_board(board, player1_name, player2_name):
     print(f"  ---------")
     print(f"  {board[6]} | {board[7]} | {board[8]}")
 
-def check_winner(board, player):
+
+def check_winner(board: list, player: str) -> bool:
     """Проверяет, выиграл ли игрок."""
     win_positions = [
         (0, 1, 2), (3, 4, 5), (6, 7, 8),  # горизонтали
@@ -21,33 +23,45 @@ def check_winner(board, player):
             return True
     return False
 
-def check_draw(board):
+
+def check_draw(board: list) -> bool:
     """Проверяет, закончена ли игра в ничью."""
     return all(cell in ("X", "O") for cell in board)
 
-def get_free_cells(board):
+
+def get_free_cells(board: list) -> list:
     """Возвращает список свободных ячеек."""
     return [i for i in range(9) if board[i] == ""]
 
-def get_player_move(board, player, player1_name, player2_name):
+
+def get_player_move(board: list, player: str, player1_name: str, player2_name: str) -> int:
     """Получает ход игрока."""
     free = get_free_cells(board)
-    while True:
+    while free:
         try:
-            move = int(input(f"Ход {player}: {player1_name if player == 1 else player2_name} (введите номер ячейки 1-9): ")) - 1
+            move = int(input(f"Ход {player}: {player1_name if player == 'X' else player2_name} "
+                             f"(введите номер ячейки 1-{len(free) + 1}): ")) - 1
             if move not in free:
                 print(f"Ячейка {move + 1} занята или некорректна!")
                 continue
             return move
         except ValueError:
             print("Некорректный ввод. Введите число 1-9.")
+        except KeyboardInterrupt:
+            print("\n\nИгра прервана пользователем.")
+            sys.exit(0)
 
-def main():
+    # Если свободных ячеек нет, но мы здесь — это ошибка
+    print("Возникла внутренняя ошибка: свободных ячеек нет, но цикл ещё не завершён.")
+    return -1
+
+
+def main() -> None:
     # Ввод имён игроков
     print("=" * 40)
     print("   TIC-TOC-TOE (Консольная версия)")
     print("=" * 40)
-    
+
     player1_name = input("Введите имя Игрока 1: ") or "Игрок 1"
     player2_name = input("Введите имя Игрока 2: ") or "Игрок 2"
 
@@ -62,8 +76,13 @@ def main():
     while True:
         print_board(board, player1_name, player2_name)
         print(f"\nХод игрока {players[player]}")
+        print("(введите 'q' для выхода)")
 
         move = get_player_move(board, players[player], player1_name, player2_name)
+
+        if move == -1:
+            break
+
         board[move] = players[player]
 
         if check_winner(board, players[player]):
@@ -76,6 +95,7 @@ def main():
             break
 
         player = 1 - player  # Переключаем игрока
+
 
 if __name__ == "__main__":
     main()
