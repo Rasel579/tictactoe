@@ -1,6 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+
 
 /**
  * Tic-Tac-Toe с графическим интерфейсом на Java Swing.
@@ -18,6 +18,7 @@ public class SwingVersion extends JFrame {
     private JLabel statusLabel;
 
     public SwingVersion() {
+        setVisible(true);
         setTitle("Tic-Tac-Toe (Swing)");
         setSize(400, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -65,6 +66,7 @@ public class SwingVersion extends JFrame {
                 buttons[i][j].setFont(new Font("Arial", Font.BOLD, 40));
                 buttons[i][j].setFocusable(false);
                 buttons[i][j].addActionListener(e -> handleMove(curI, curJ));
+                board[i][j] = " ";
                 gamePanel.add(buttons[i][j]);
             }
         }
