@@ -1,0 +1,33 @@
+# Compiled Java files
+*.class
+*.jar
+*.jar.map
+
+# Build directories
+build/
+target/
+
+# IDE files
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+*.pyc
+__pycache__/
+*.py[cod]
+.env
+venv/
+.venv/
+venv.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
