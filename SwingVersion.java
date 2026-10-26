@@ -20,7 +20,7 @@ public class SwingVersion extends JFrame {
     private int cellSize = 100; // размер ячейки в пикселях
     private int gap = 1; // минимальный отступ между ячейками для сохранения квадратной формы
     private JButton resetBtn; // кнопка сброса
-    private JPanel gamePanel;
+    private JPanel gamePanel; // ПОЛЕ КЛАССА — панель для отображения сетки
 
     public SwingVersion() {
         setVisible(true);
@@ -59,7 +59,8 @@ public class SwingVersion extends JFrame {
         add(headerPanel, BorderLayout.NORTH);
 
         // Основная панель игры - квадратная
-        JPanel gamePanel = new JPanel();
+        // ИСПРАВЛЕНИЕ: используем поле класса gamePanel вместо локальной переменной!
+        gamePanel = new JPanel(); // теперь это поле класса, а не локальная переменная
         gamePanel.setBackground(new Color(248, 250, 255));
         gamePanel.setPreferredSize(new Dimension(400, 400));
 
@@ -352,11 +353,13 @@ public class SwingVersion extends JFrame {
 
     /**
      * МЕТОД ПЕРЕСБОРКИ ПАНЕЛИ ПРИ ИЗМЕНЕНИИ РАЗМЕРА ПОЛЯ
-     * Исправление ошибки: сетка теперь корректно перестраивается при смене размера поля.
-     * Проблема была в том, что при изменении boardSize старые кнопки не удалялись,
-     * а панель не пересоздавалась, что приводило к "съезжающей" сетке.
+     * Исправление ошибки: теперь используется поле класса gamePanel,
+     * а не локальная переменная, что устраняет проблему асинхронности.
+     * При смене размера сетки кнопки корректно удаляются и добавляются заново.
      */
     private void rebuildBoard() {
+        // ИСПРАВЛЕНИЕ: теперь используем поле класса gamePanel,
+        // которое уже заполнено кнопками из конструктора
         // Удаляем старые кнопки из панели
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
