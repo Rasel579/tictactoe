@@ -5,6 +5,7 @@ import java.awt.*;
 /**
  * Tic-Tac-Toe с графическим интерфейсом на Java Swing.
  * Поддерживает выбор размера поля (3x3, 4x4, 5x5 и т.д.).
+ * Поле теперь квадратное (400x400) для правильного отображения.
  */
 public class SwingVersion extends JFrame {
 
@@ -20,7 +21,7 @@ public class SwingVersion extends JFrame {
     public SwingVersion() {
         setVisible(true);
         setTitle("Tic-Tac-Toe (Swing)");
-        setSize(400, 500);
+        setSize(400, 400); // Квадратное поле 400x400
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
@@ -235,43 +236,7 @@ public class SwingVersion extends JFrame {
         p2Panel.add(p2Label, BorderLayout.NORTH);
         p2Panel.add(p2O, BorderLayout.CENTER);
 
-        // Режим игры
-        JPanel modePanel = new JPanel();
-        modePanel.setLayout(new GridLayout(1, 2, 0, 0));
-        modePanel.setBackground(new Color(52, 73, 94));
-        modePanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-        JRadioButton rbPvP = new JRadioButton("PvP");
-        rbPvP.setSelected(true);
-        rbPvP.setFont(new Font("Arial", Font.PLAIN, 14));
-
-        JRadioButton rbPvCPU = new JRadioButton("PvCPU");
-        rbPvCPU.setFont(new Font("Arial", Font.PLAIN, 14));
-
-        ButtonGroup modeGroup = new ButtonGroup();
-        modeGroup.add(rbPvP);
-        modeGroup.add(rbPvCPU);
-
-        modePanel.add(rbPvP);
-        modePanel.add(rbPvCPU);
-
-        // Уровень CPU
-        JPanel cpuPanel = new JPanel();
-        cpuPanel.setLayout(new BorderLayout());
-        cpuPanel.setBackground(new Color(52, 73, 94));
-        cpuPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-        JLabel cpuLabel = new JLabel("Уровень CPU:");
-        cpuLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        cpuLabel.setForeground(Color.WHITE);
-
-        JSpinner cpuSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 3, 1));
-        cpuSpinner.setPreferredSize(new Dimension(50, 25));
-
-        cpuPanel.add(cpuLabel, BorderLayout.NORTH);
-        cpuPanel.add(cpuSpinner, BorderLayout.CENTER);
-
-        // Выбор размера поля
+        // Размер поля
         JPanel sizePanel = new JPanel();
         sizePanel.setLayout(new BorderLayout());
         sizePanel.setBackground(new Color(52, 73, 94));
@@ -281,67 +246,70 @@ public class SwingVersion extends JFrame {
         sizeLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         sizeLabel.setForeground(Color.WHITE);
 
-        JSpinner sizeSpinner = new JSpinner(new SpinnerNumberModel(3, 3, 5, 1));
-        sizeSpinner.setPreferredSize(new Dimension(50, 25));
-        sizeSpinner.setValue(3);
-
-        sizePanel.add(sizeLabel, BorderLayout.NORTH);
-        sizePanel.add(sizeSpinner, BorderLayout.CENTER);
-
-        // Кнопки
-        JPanel btnPanel = new JPanel();
-        btnPanel.setBackground(new Color(52, 73, 94));
-        btnPanel.setLayout(new GridLayout(1, 2, 10, 0));
-
-        JButton okBtn = new JButton("OK");
-        okBtn.setFont(new Font("Arial", Font.PLAIN, 12));
-
-        JButton cancelBtn = new JButton("Отмена");
-        cancelBtn.setFont(new Font("Arial", Font.PLAIN, 12));
-
-        okBtn.addActionListener(e -> {
-            boolean p1XNew = p1X.isSelected();
-            boolean p2ONew = p2O.isSelected();
-            boolean isPvCPU = rbPvCPU.isSelected();
-            int cpuLevelVal = (int) cpuSpinner.getValue();
-            int boardSizeVal = (int) sizeSpinner.getValue();
-
-            if (!p1XNew || !p2ONew) {
-                JOptionPane.showMessageDialog(dialog,
-                        "Каждый игрок должен выбрать свою фигуру!",
-                        "Ошибка", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            if (isPvCPU) {
-                gameMode = "PvCPU";
-                cpuLevel = cpuLevelVal;
-            } else {
-                gameMode = "PvP";
-            }
-
-            boardSize = boardSizeVal;
-            setSize(350 + (boardSizeVal - 3) * 50, 500 + (boardSizeVal - 3) * 100);
-            statusLabel.setText("Размер поля: " + boardSizeVal + "x" + boardSizeVal);
-
-            dialog.dispose();
+        JComboBox<Integer> sizeCombo = new JComboBox<>(new Integer[]{3, 4, 5});
+        sizeCombo.setSelectedIndex(0);
+        sizeCombo.addActionListener(e -> {
+            boardSize = sizeCombo.getSelectedIndex() + 1;
+            startNewGame();
         });
 
-        cancelBtn.addActionListener(e -> dialog.dispose());
+        sizePanel.add(sizeLabel, BorderLayout.NORTH);
+        sizePanel.add(sizeCombo, BorderLayout.CENTER);
 
-        btnPanel.add(okBtn);
-        btnPanel.add(cancelBtn);
+        // Режим игры
+        JPanel modePanel = new JPanel();
+        modePanel.setLayout(new BorderLayout());
+        modePanel.setBackground(new Color(52, 73, 94));
+        modePanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        JLabel modeLabel = new JLabel("Режим игры:");
+        modeLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        modeLabel.setForeground(Color.WHITE);
+
+        JComboBox<String> modeCombo = new JComboBox<>(new String[]{"PvP", "PvCPU"});
+        modeCombo.setSelectedIndex(0);
+        modeCombo.addActionListener(e -> {
+            gameMode = modeCombo.getSelectedItem().toString();
+        });
+
+        modePanel.add(modeLabel, BorderLayout.NORTH);
+        modePanel.add(modeCombo, BorderLayout.CENTER);
+
+        // Уровень сложности
+        JPanel levelPanel = new JPanel();
+        levelPanel.setLayout(new BorderLayout());
+        levelPanel.setBackground(new Color(52, 73, 94));
+        levelPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        JLabel levelLabel = new JLabel("Уровень сложности:");
+        levelLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        levelLabel.setForeground(Color.WHITE);
+
+        JComboBox<Integer> levelCombo = new JComboBox<>(new Integer[]{1, 2});
+        levelCombo.setSelectedIndex(0);
+        levelCombo.addActionListener(e -> {
+            cpuLevel = levelCombo.getSelectedIndex() + 1;
+        });
+
+        levelPanel.add(levelLabel, BorderLayout.NORTH);
+        levelPanel.add(levelCombo, BorderLayout.CENTER);
+
+        // Кнопка применить
+        JButton applyBtn = new JButton("Применить");
+        applyBtn.addActionListener(e -> {
+            dialog.dispose();
+            startNewGame();
+        });
 
         dialog.add(p1Panel);
         dialog.add(p2Panel);
-        dialog.add(modePanel);
-        dialog.add(cpuPanel);
         dialog.add(sizePanel);
-        dialog.add(btnPanel);
-        dialog.setVisible(true);
+        dialog.add(modePanel);
+        dialog.add(levelPanel);
+        dialog.add(applyBtn);
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(SwingVersion::new);
+        SwingVersion app = new SwingVersion();
     }
 }
