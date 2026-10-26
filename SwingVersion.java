@@ -337,6 +337,7 @@ public class SwingVersion extends JFrame {
         dialog.add(modePanel);
         dialog.add(levelPanel);
         dialog.add(applyBtn);
+        dialog.setVisible(true);
     }
 
     public static void main(String[] args) {
