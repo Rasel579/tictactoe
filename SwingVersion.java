@@ -17,19 +17,22 @@ public class SwingVersion extends JFrame {
     private int cpuLevel = 1; // 1 = случайный, 2 = минимакс
     private int boardSize = 3; // размер поля (3x3 по умолчанию)
     private JLabel statusLabel;
+    private int cellSize = 100; // размер ячейки в пикселях
+    private int gap = 1; // минимальный отступ между ячейками для сохранения квадратной формы
+    private JButton resetBtn; // кнопка сброса
 
     public SwingVersion() {
         setVisible(true);
         setTitle("Tic-Tac-Toe (Swing)");
-        setSize(400, 400); // Квадратное поле 400x400
+        setSize(440, 500); // увеличиваем размер для панели результатов
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // Панель заголовка
+        // Панель заголовка (тулбар)
         JPanel headerPanel = new JPanel();
-        headerPanel.setLayout(new BorderLayout());
-        headerPanel.setPreferredSize(new Dimension(400, 60));
+        headerPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        headerPanel.setPreferredSize(new Dimension(440, 60));
         headerPanel.setBackground(new Color(52, 73, 94));
 
         JLabel titleLabel = new JLabel("Tic-Tac-Toe", SwingConstants.CENTER);
@@ -42,32 +45,51 @@ public class SwingVersion extends JFrame {
         JButton settingsBtn = new JButton("Настройки");
         settingsBtn.addActionListener(e -> openSettingsDialog());
 
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(newGameBtn);
-        buttonPanel.add(settingsBtn);
+        // Кнопка сброс — перенесена в тулбар
+        resetBtn = new JButton("Сброс");
+        resetBtn.setFont(new Font("Arial", Font.PLAIN, 12));
+        resetBtn.addActionListener(e -> startNewGame());
 
-        headerPanel.add(titleLabel, BorderLayout.CENTER);
-        headerPanel.add(buttonPanel, BorderLayout.SOUTH);
+        headerPanel.add(titleLabel);
+        headerPanel.add(newGameBtn);
+        headerPanel.add(settingsBtn);
+        headerPanel.add(resetBtn);
+
         add(headerPanel, BorderLayout.NORTH);
 
-        // Основная панель игры
+        // Основная панель игры - квадратная
         JPanel gamePanel = new JPanel();
-        gamePanel.setLayout(new GridLayout(boardSize, boardSize, 5, 5));
         gamePanel.setBackground(new Color(248, 250, 255));
 
         // Создаём кнопки
         buttons = new JButton[boardSize][boardSize];
         board = new String[boardSize][boardSize];
 
+        // Вычисляем количество кнопок
+        int numButtons = boardSize * boardSize;
+
+        // Создаём все кнопки с одинаковым размером
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
                 int curI = i;
                 int curJ = j;
+                // Устанавливаем одинаковый размер для всех кнопок
+                int buttonSize = cellSize - gap;
                 buttons[i][j] = new JButton("");
-                buttons[i][j].setFont(new Font("Arial", Font.BOLD, 40));
+                buttons[i][j].setFont(new Font("Arial", Font.BOLD, 30));
                 buttons[i][j].setFocusable(false);
                 buttons[i][j].addActionListener(e -> handleMove(curI, curJ));
                 board[i][j] = " ";
+                buttons[i][j].setPreferredSize(new Dimension(buttonSize, buttonSize));
+                buttons[i][j].setMaximumSize(new Dimension(buttonSize, buttonSize));
+                buttons[i][j].setBackground(Color.WHITE);
+            }
+        }
+
+        // Добавляем кнопки в панель с GridLayout
+        gamePanel.setLayout(new GridLayout(boardSize, boardSize, gap, gap));
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
                 gamePanel.add(buttons[i][j]);
             }
         }
@@ -76,28 +98,24 @@ public class SwingVersion extends JFrame {
         statusLabel = new JLabel("Ход: X");
         statusLabel.setFont(new Font("Arial", Font.BOLD, 16));
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        statusLabel.setPreferredSize(new Dimension(400, 30));
         gamePanel.add(statusLabel);
-
-        // Кнопка сброса
-        JButton resetBtn = new JButton("Сброс");
-        resetBtn.setFont(new Font("Arial", Font.PLAIN, 12));
-        resetBtn.addActionListener(e -> startNewGame());
-        gamePanel.add(resetBtn);
 
         add(gamePanel, BorderLayout.CENTER);
 
-        // Панель подвала
-        JPanel footerPanel = new JPanel();
-        footerPanel.setBackground(new Color(52, 73, 94));
-        footerPanel.setPreferredSize(new Dimension(400, 40));
-        footerPanel.setOpaque(true);
+        // Панель результатов игры - отдельная строка
+        JPanel resultPanel = new JPanel();
+        resultPanel.setLayout(new BorderLayout());
+        resultPanel.setBackground(new Color(52, 73, 94));
+        resultPanel.setPreferredSize(new Dimension(440, 50));
+        resultPanel.setOpaque(true);
 
-        JLabel footerLabel = new JLabel("Tic-Tac-Toe — версия 1.0 | Swing GUI");
-        footerLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        footerLabel.setForeground(Color.LIGHT_GRAY);
+        JLabel resultLabel = new JLabel("Результат: Игра в процессе...");
+        resultLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        resultLabel.setForeground(Color.YELLOW);
+        resultPanel.add(resultLabel, BorderLayout.CENTER);
 
-        footerPanel.add(footerLabel);
-        add(footerPanel, BorderLayout.SOUTH);
+        add(resultPanel, BorderLayout.SOUTH);
     }
 
     private void startNewGame() {
@@ -108,12 +126,25 @@ public class SwingVersion extends JFrame {
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
                 buttons[i][j].setText("");
-                buttons[i][j].setBackground(null);
+                buttons[i][j].setBackground(Color.WHITE);
                 board[i][j] = " ";
             }
         }
         statusLabel.setText("Ход: X");
         statusLabel.setForeground(Color.WHITE);
+        updateResultLabel();
+    }
+
+    private void updateResultLabel() {
+        if (!gameActive) {
+            if (checkWinner()) {
+                statusLabel.setText(currentPlayer + " выиграл!");
+                statusLabel.setForeground(currentPlayer.equals("X") ? Color.RED : Color.BLUE);
+            } else if (checkDraw()) {
+                statusLabel.setText("Ничья!");
+                statusLabel.setForeground(Color.YELLOW);
+            }
+        }
     }
 
     private void handleMove(int row, int col) {
@@ -198,7 +229,7 @@ public class SwingVersion extends JFrame {
 
     private void openSettingsDialog() {
         JDialog dialog = new JDialog(this, "Настройки", true);
-        dialog.setSize(350, 350);
+        dialog.setSize(350, 400);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new GridLayout(5, 1, 0, 10));
 
@@ -250,7 +281,6 @@ public class SwingVersion extends JFrame {
         sizeCombo.setSelectedIndex(0);
         sizeCombo.addActionListener(e -> {
             boardSize = sizeCombo.getSelectedIndex() + 1;
-            startNewGame();
         });
 
         sizePanel.add(sizeLabel, BorderLayout.NORTH);
