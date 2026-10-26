@@ -20,6 +20,7 @@ public class SwingVersion extends JFrame {
     private int cellSize = 100; // размер ячейки в пикселях
     private int gap = 1; // минимальный отступ между ячейками для сохранения квадратной формы
     private JButton resetBtn; // кнопка сброса
+    private JPanel gamePanel;
 
     public SwingVersion() {
         setVisible(true);
@@ -408,5 +409,9 @@ public class SwingVersion extends JFrame {
 
         // Перерисовываем компонент
         repaint();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater( () -> new SwingVersion());
     }
 }
