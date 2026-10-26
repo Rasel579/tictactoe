@@ -412,6 +412,6 @@ public class SwingVersion extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater( () -> new SwingVersion());
+        SwingUtilities.invokeLater(SwingVersion::new);
     }
 }
