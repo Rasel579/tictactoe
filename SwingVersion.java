@@ -60,6 +60,7 @@ public class SwingVersion extends JFrame {
         // Основная панель игры - квадратная
         JPanel gamePanel = new JPanel();
         gamePanel.setBackground(new Color(248, 250, 255));
+        gamePanel.setPreferredSize(new Dimension(400, 400));
 
         // Создаём кнопки
         buttons = new JButton[boardSize][boardSize];
@@ -281,6 +282,7 @@ public class SwingVersion extends JFrame {
         sizeCombo.setSelectedIndex(0);
         sizeCombo.addActionListener(e -> {
             boardSize = sizeCombo.getSelectedIndex() + 1;
+            rebuildBoard(); // ПЕРЕСБОРКА ПАНЕЛИ ПРИ ИЗМЕНЕНИИ РАЗМЕРА
         });
 
         sizePanel.add(sizeLabel, BorderLayout.NORTH);
@@ -324,23 +326,87 @@ public class SwingVersion extends JFrame {
         levelPanel.add(levelLabel, BorderLayout.NORTH);
         levelPanel.add(levelCombo, BorderLayout.CENTER);
 
-        // Кнопка применить
-        JButton applyBtn = new JButton("Применить");
-        applyBtn.addActionListener(e -> {
-            dialog.dispose();
-            startNewGame();
-        });
+        // Кнопки OK / Отмена
+        JPanel buttonsPanel = new JPanel();
+        buttonsPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
+        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+
+        JButton okBtn = new JButton("OK");
+        okBtn.addActionListener(e -> dialog.dispose());
+
+        JButton cancelBtn = new JButton("Отмена");
+        cancelBtn.addActionListener(e -> dialog.dispose());
+
+        buttonsPanel.add(okBtn);
+        buttonsPanel.add(cancelBtn);
 
         dialog.add(p1Panel);
         dialog.add(p2Panel);
         dialog.add(sizePanel);
         dialog.add(modePanel);
         dialog.add(levelPanel);
-        dialog.add(applyBtn);
+        dialog.add(buttonsPanel);
         dialog.setVisible(true);
     }
 
-    public static void main(String[] args) {
-        SwingVersion app = new SwingVersion();
+    /**
+     * МЕТОД ПЕРЕСБОРКИ ПАНЕЛИ ПРИ ИЗМЕНЕНИИ РАЗМЕРА ПОЛЯ
+     * Исправление ошибки: сетка теперь корректно перестраивается при смене размера поля.
+     * Проблема была в том, что при изменении boardSize старые кнопки не удалялись,
+     * а панель не пересоздавалась, что приводило к "съезжающей" сетке.
+     */
+    private void rebuildBoard() {
+        // Удаляем старые кнопки из панели
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                if (buttons[i][j] != null) {
+                    gamePanel.remove(buttons[i][j]);
+                    buttons[i][j].setText("");
+                    buttons[i][j].setBackground(Color.WHITE);
+                    board[i][j] = " ";
+                }
+            }
+        }
+
+        // Обновляем размер поля
+        int newSize = boardSize;
+        buttons = new JButton[newSize][newSize];
+        board = new String[newSize][newSize];
+
+        // Вычисляем количество кнопок
+        int numButtons = newSize * newSize;
+
+        // Создаём все кнопки с одинаковым размером
+        for (int i = 0; i < newSize; i++) {
+            for (int j = 0; j < newSize; j++) {
+                int curI = i;
+                int curJ = j;
+                // Устанавливаем одинаковый размер для всех кнопок
+                int buttonSize = cellSize - gap;
+                buttons[i][j] = new JButton("");
+                buttons[i][j].setFont(new Font("Arial", Font.BOLD, 30));
+                buttons[i][j].setFocusable(false);
+                buttons[i][j].addActionListener(e -> handleMove(curI, curJ));
+                board[i][j] = " ";
+                buttons[i][j].setPreferredSize(new Dimension(buttonSize, buttonSize));
+                buttons[i][j].setMaximumSize(new Dimension(buttonSize, buttonSize));
+                buttons[i][j].setBackground(Color.WHITE);
+            }
+        }
+
+        // Добавляем кнопки в панель с GridLayout
+        gamePanel.setLayout(new GridLayout(newSize, newSize, gap, gap));
+        for (int i = 0; i < newSize; i++) {
+            for (int j = 0; j < newSize; j++) {
+                gamePanel.add(buttons[i][j]);
+            }
+        }
+
+        // Обновляем размер окна под новую сетку
+        int windowSize = newSize * (cellSize - gap) + 10 + 30; // 10 - отступы, 30 - statusLabel
+        setSize(windowSize, windowSize + 80); // +80 для панели результатов
+
+        // Перерисовываем компонент
+        repaint();
     }
 }
