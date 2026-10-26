@@ -17,6 +17,8 @@ public class SwingVersion extends JFrame {
     private int cpuLevel = 1; // 1 = случайный, 2 = минимакс
     private int boardSize = 3; // размер поля (3x3 по умолчанию)
     private JLabel statusLabel;
+    private int cellSize = 100; // размер ячейки в пикселях
+    private int gap = 1; // минимальный отступ между ячейками для сохранения квадратной формы
 
     public SwingVersion() {
         setVisible(true);
@@ -50,24 +52,39 @@ public class SwingVersion extends JFrame {
         headerPanel.add(buttonPanel, BorderLayout.SOUTH);
         add(headerPanel, BorderLayout.NORTH);
 
-        // Основная панель игры
+        // Основная панель игры - квадратная
         JPanel gamePanel = new JPanel();
-        gamePanel.setLayout(new GridLayout(boardSize, boardSize, 5, 5));
         gamePanel.setBackground(new Color(248, 250, 255));
 
         // Создаём кнопки
         buttons = new JButton[boardSize][boardSize];
         board = new String[boardSize][boardSize];
 
+        // Вычисляем количество кнопок
+        int numButtons = boardSize * boardSize;
+
+        // Создаём все кнопки с одинаковым размером
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
                 int curI = i;
                 int curJ = j;
+                // Устанавливаем одинаковый размер для всех кнопок
+                int buttonSize = cellSize - gap;
                 buttons[i][j] = new JButton("");
-                buttons[i][j].setFont(new Font("Arial", Font.BOLD, 40));
+                buttons[i][j].setFont(new Font("Arial", Font.BOLD, 30));
                 buttons[i][j].setFocusable(false);
                 buttons[i][j].addActionListener(e -> handleMove(curI, curJ));
                 board[i][j] = " ";
+                buttons[i][j].setPreferredSize(new Dimension(buttonSize, buttonSize));
+                buttons[i][j].setMaximumSize(new Dimension(buttonSize, buttonSize));
+                buttons[i][j].setBackground(Color.WHITE);
+            }
+        }
+
+        // Добавляем кнопки в панель с GridLayout
+        gamePanel.setLayout(new GridLayout(boardSize, boardSize, gap, gap));
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
                 gamePanel.add(buttons[i][j]);
             }
         }
@@ -76,6 +93,7 @@ public class SwingVersion extends JFrame {
         statusLabel = new JLabel("Ход: X");
         statusLabel.setFont(new Font("Arial", Font.BOLD, 16));
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        statusLabel.setPreferredSize(new Dimension(400, 30));
         gamePanel.add(statusLabel);
 
         // Кнопка сброса
@@ -108,7 +126,7 @@ public class SwingVersion extends JFrame {
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
                 buttons[i][j].setText("");
-                buttons[i][j].setBackground(null);
+                buttons[i][j].setBackground(Color.WHITE);
                 board[i][j] = " ";
             }
         }
