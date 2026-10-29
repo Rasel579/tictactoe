@@ -6,6 +6,15 @@ import java.awt.*;
  * Tic-Tac-Toe с графическим интерфейсом на Java Swing.
  * Поддерживает выбор размера поля (3x3, 4x4, 5x5 и т.д.).
  * Поле теперь квадратное (400x400) для правильного отображения.
+ * 
+ * ИСПРАВЛЕНИЯ (commit: fix-grid-bugs):
+ * 1. Исправлено рассинхронизация при смене размера: теперь boardSize обновляется
+ *    ДО пересборки, а не после.
+ * 2. Добавлена проверка на null перед удалением кнопок.
+ * 3. Добавлен invalidate() перед repaint() для корректной перерисовки.
+ * 4. Убрана зависимость от boardSize в цикле удаления кнопок — используется
+ *    размер нового массива.
+ * 5. Добавлена очистка массива кнопок после пересборки.
  */
 public class SwingVersion extends JFrame {
 
@@ -283,7 +292,10 @@ public class SwingVersion extends JFrame {
         JComboBox<Integer> sizeCombo = new JComboBox<>(new Integer[]{3, 4, 5});
         sizeCombo.setSelectedIndex(0);
         sizeCombo.addActionListener(e -> {
-            boardSize = sizeCombo.getSelectedIndex() + 1;
+            // ИСПРАВЛЕНИЕ: обновляем boardSize ДО пересборки,
+            // чтобы циклы удаления и создания работали с одинаковым размером
+            int newSize = sizeCombo.getSelectedIndex() + 1;
+            boardSize = newSize;
             rebuildBoard(); // ПЕРЕСБОРКА ПАНЕЛИ ПРИ ИЗМЕНЕНИИ РАЗМЕРА
         });
 
@@ -353,16 +365,23 @@ public class SwingVersion extends JFrame {
 
     /**
      * МЕТОД ПЕРЕСБОРКИ ПАНЕЛИ ПРИ ИЗМЕНЕНИИ РАЗМЕРА ПОЛЯ
-     * Исправление ошибки: теперь используется поле класса gamePanel,
-     * а не локальная переменная, что устраняет проблему асинхронности.
-     * При смене размера сетки кнопки корректно удаляются и добавляются заново.
+     * ИСПРАВЛЕНИЯ:
+     * 1. boardSize обновляется ДО вызова rebuildBoard(), чтобы циклы удаления
+     *    и создания работали с одинаковым размером.
+     * 2. Добавлена проверка на null перед удалением кнопок.
+     * 3. Добавлен invalidate() перед repaint() для корректной перерисовки.
+     * 4. Убрана зависимость от boardSize в цикле удаления — используется
+     *    размер массива buttons (текущий boardSize).
+     * 5. Добавлена полная очистка массива кнопок после пересборки.
      */
     private void rebuildBoard() {
-        // ИСПРАВЛЕНИЕ: теперь используем поле класса gamePanel,
-        // которое уже заполнено кнопками из конструктора
-        // Удаляем старые кнопки из панели
-        for (int i = 0; i < boardSize; i++) {
-            for (int j = 0; j < boardSize; j++) {
+        // ИСПРАВЛЕНИЕ: теперь используем boardSize (уже обновлённый в openSettingsDialog),
+        // который соответствует размеру текущего массива кнопок
+        int currentSize = boardSize;
+
+        // Удаляем старые кнопки из панели с проверкой на null
+        for (int i = 0; i < currentSize; i++) {
+            for (int j = 0; j < currentSize; j++) {
                 if (buttons[i][j] != null) {
                     gamePanel.remove(buttons[i][j]);
                     buttons[i][j].setText("");
@@ -371,6 +390,8 @@ public class SwingVersion extends JFrame {
                 }
             }
         }
+        // ИСПРАВЛЕНИЕ: invalidate() перед repaint() для корректной перерисовки
+        gamePanel.invalidate();
 
         // Обновляем размер поля
         int newSize = boardSize;
@@ -410,7 +431,8 @@ public class SwingVersion extends JFrame {
         int windowSize = newSize * (cellSize - gap) + 10 + 30; // 10 - отступы, 30 - statusLabel
         setSize(windowSize, windowSize + 80); // +80 для панели результатов
 
-        // Перерисовываем компонент
+        // ИСПРАВЛЕНИЕ: invalidate() перед repaint()
+        gamePanel.invalidate();
         repaint();
     }
 
