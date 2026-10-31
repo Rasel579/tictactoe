@@ -7,14 +7,13 @@ import java.awt.*;
  * Поддерживает выбор размера поля (3x3, 4x4, 5x5 и т.д.).
  * Поле теперь квадратное (400x400) для правильного отображения.
  * 
- * ИСПРАВЛЕНИЯ (commit: fix-grid-bugs):
- * 1. Исправлено рассинхронизация при смене размера: теперь boardSize обновляется
- *    ДО пересборки, а не после.
- * 2. Добавлена проверка на null перед удалением кнопок.
- * 3. Добавлен invalidate() перед repaint() для корректной перерисовки.
- * 4. Убрана зависимость от boardSize в цикле удаления кнопок — используется
- *    размер нового массива.
- * 5. Добавлена очистка массива кнопок после пересборки.
+ * ИСПРАВЛЕНИЯ (commit: fix-swing-grid-layout-bug):
+ * 1. Сохранение OLD_SIZE перед изменением boardSize для корректного удаления кнопок
+ * 2. Использование OLD_SIZE для цикла удаления кнопок
+ * 3. Использование NEW_SIZE для создания новых кнопок
+ * 4. Полная очистка массива кнопок после пересборки
+ * 5. Проверка на null перед удалением кнопок
+ * 6. invalidate() перед repaint() для корректной перерисовки
  */
 public class SwingVersion extends JFrame {
 
@@ -292,11 +291,12 @@ public class SwingVersion extends JFrame {
         JComboBox<Integer> sizeCombo = new JComboBox<>(new Integer[]{3, 4, 5});
         sizeCombo.setSelectedIndex(0);
         sizeCombo.addActionListener(e -> {
-            // ИСПРАВЛЕНИЕ: обновляем boardSize ДО пересборки,
-            // чтобы циклы удаления и создания работали с одинаковым размером
+            // ИСПРАВЛЕНИЕ: сохраняем OLD_SIZE перед изменением boardSize
+            // чтобы использовать его для корректного удаления кнопок
+            int oldSize = boardSize; // сохраняем OLD_SIZE
             int newSize = sizeCombo.getSelectedIndex() + 1;
-            boardSize = newSize;
-            rebuildBoard(); // ПЕРЕСБОРКА ПАНЕЛИ ПРИ ИЗМЕНЕНИИ РАЗМЕРА
+            boardSize = newSize; // обновляем boardSize для создания новых кнопок
+            rebuildBoard(oldSize, newSize); // передаём OLD_SIZE и NEW_SIZE
         });
 
         sizePanel.add(sizeLabel, BorderLayout.NORTH);
@@ -365,23 +365,24 @@ public class SwingVersion extends JFrame {
 
     /**
      * МЕТОД ПЕРЕСБОРКИ ПАНЕЛИ ПРИ ИЗМЕНЕНИИ РАЗМЕРА ПОЛЯ
+     * 
      * ИСПРАВЛЕНИЯ:
-     * 1. boardSize обновляется ДО вызова rebuildBoard(), чтобы циклы удаления
-     *    и создания работали с одинаковым размером.
-     * 2. Добавлена проверка на null перед удалением кнопок.
-     * 3. Добавлен invalidate() перед repaint() для корректной перерисовки.
-     * 4. Убрана зависимость от boardSize в цикле удаления — используется
-     *    размер массива buttons (текущий boardSize).
-     * 5. Добавлена полная очистка массива кнопок после пересборки.
+     * 1. OLD_SIZE передаётся как параметр — это размер ДО изменения boardSize.
+     *    Используется для корректного удаления кнопок из старого массива.
+     * 2. NEW_SIZE передаётся как параметр — это новый размер для создания кнопок.
+     * 3. Полная очистка массива кнопок после пересборки (установка в null).
+     * 4. Проверка на null перед удалением кнопок.
+     * 5. invalidate() вызывается ПЕРЕД repaint() для корректной перерисовки.
+     * 6. Убрана зависимость от boardSize в цикле удаления — используется OLD_SIZE.
+     * 7. Убрана зависимость от boardSize в цикле создания — используется NEW_SIZE.
      */
-    private void rebuildBoard() {
-        // ИСПРАВЛЕНИЕ: теперь используем boardSize (уже обновлённый в openSettingsDialog),
-        // который соответствует размеру текущего массива кнопок
-        int currentSize = boardSize;
-
+    private void rebuildBoard(int oldSize, int newSize) {
+        // ИСПРАВЛЕНИЕ: используем oldSize для удаления кнопок (размер ДО изменения)
+        // и newSize для создания новых кнопок (новый размер)
+        
         // Удаляем старые кнопки из панели с проверкой на null
-        for (int i = 0; i < currentSize; i++) {
-            for (int j = 0; j < currentSize; j++) {
+        for (int i = 0; i < oldSize; i++) {
+            for (int j = 0; j < oldSize; j++) {
                 if (buttons[i][j] != null) {
                     gamePanel.remove(buttons[i][j]);
                     buttons[i][j].setText("");
@@ -390,11 +391,11 @@ public class SwingVersion extends JFrame {
                 }
             }
         }
+        
         // ИСПРАВЛЕНИЕ: invalidate() перед repaint() для корректной перерисовки
         gamePanel.invalidate();
 
         // Обновляем размер поля
-        int newSize = boardSize;
         buttons = new JButton[newSize][newSize];
         board = new String[newSize][newSize];
 
